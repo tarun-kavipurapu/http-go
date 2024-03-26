@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net"
 	"os"
+	"strings"
 	// Uncomment this block to pass the first stage
 	// "net"
 	// "os"
@@ -12,13 +13,29 @@ import (
 func handleConnection(conn net.Conn) {
 
 	defer conn.Close()
+	buf := make([]byte, 1024)
 
-	responseSent := []byte("HTTP/1.1 200 OK\r\n\r\n")
-
-	_, err := conn.Write(responseSent)
-
+	n, err := conn.Read(buf)
 	if err != nil {
-		fmt.Println("Error writing:", err)
+		fmt.Println("Error reading:", err)
+		return
+	}
+	request := string(buf[:n])
+	requestLines := strings.Split(request, "\r\n")
+
+	path := strings.Split(requestLines[0], " ")[1]
+
+	var responseSent []byte
+	if path == "/" {
+		responseSent = []byte("HTTP/1.1 200 OK\r\n\r\n")
+	} else {
+		responseSent = []byte("HTTP/1.1 404 NOT FOUND\r\n\r\n")
+	}
+
+	_, errWrite := conn.Write(responseSent)
+
+	if errWrite != nil {
+		fmt.Println("Error writing:", errWrite)
 		return
 	}
 
@@ -42,6 +59,8 @@ func main() {
 		if err != nil {
 			fmt.Println("Failed to Accept the connection")
 		}
+
+		// fmt.Println("connection", conn.)
 		handleConnection(conn)
 
 	}
