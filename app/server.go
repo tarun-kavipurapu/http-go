@@ -22,8 +22,12 @@ func handleConnection(conn net.Conn) {
 	}
 	request := string(buf[:n])
 	// fmt.Println(request)
-	requestLines := strings.Split(request, "\r\n")
+	handleContent(request, conn)
 
+}
+
+func handleContent(request string, conn net.Conn) {
+	requestLines := strings.Split(request, "\r\n")
 	path := strings.Split(requestLines[0], " ")[1]
 	var responseSent []byte
 
@@ -36,6 +40,13 @@ func handleConnection(conn net.Conn) {
 		contentLength := fmt.Sprintf("Content-Length: %d\r\n\r\n", len(echoString))
 
 		responseSent = []byte("HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\n" + contentLength + echoString)
+	} else if path == "/user-agent" {
+		requestLines := strings.Split(request, "\r\n")[2]
+		userAgent := strings.Split(requestLines, ": ")[1]
+
+		contentLength := fmt.Sprintf("Content-Length: %d\r\n\r\n", len(userAgent))
+		// userAgentString:=fmt.Sprintf("User-Agent: %s",userAgent)
+		responseSent = []byte("HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\n" + contentLength + userAgent)
 	} else {
 		responseSent = []byte("HTTP/1.1 404 NOT FOUND\r\n\r\n")
 	}
@@ -46,7 +57,6 @@ func handleConnection(conn net.Conn) {
 		fmt.Println("Error writing:", errWrite)
 		return
 	}
-
 }
 
 func main() {
