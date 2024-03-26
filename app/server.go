@@ -13,9 +13,9 @@ func handleConnection(conn net.Conn) {
 
 	defer conn.Close()
 
-	response := []byte("HTTP/1.1 200 OK\r\n\r\n")
+	responseSent := []byte("HTTP/1.1 200 OK\r\n\r\n")
 
-	_, err := conn.Write(response)
+	_, err := conn.Write(responseSent)
 
 	if err != nil {
 		fmt.Println("Error writing:", err)
