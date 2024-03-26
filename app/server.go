@@ -79,7 +79,7 @@ func main() {
 		}
 
 		// fmt.Println("connection", conn.)
-		handleConnection(conn)
+		go handleConnection(conn)
 
 	}
 
