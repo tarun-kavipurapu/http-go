@@ -21,13 +21,21 @@ func handleConnection(conn net.Conn) {
 		return
 	}
 	request := string(buf[:n])
+	// fmt.Println(request)
 	requestLines := strings.Split(request, "\r\n")
 
 	path := strings.Split(requestLines[0], " ")[1]
-
 	var responseSent []byte
+
 	if path == "/" {
 		responseSent = []byte("HTTP/1.1 200 OK\r\n\r\n")
+	} else if strings.HasPrefix(path, "/echo") {
+		// Here you can implement logic to echo back the request, if needed
+		echoString := path[6:]
+		// fmt.Println("echo", echoString)
+		contentLength := fmt.Sprintf("Content-Length: %d\r\n\r\n", len(echoString))
+
+		responseSent = []byte("HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\n" + contentLength + echoString)
 	} else {
 		responseSent = []byte("HTTP/1.1 404 NOT FOUND\r\n\r\n")
 	}
