@@ -35,6 +35,9 @@ func createRequest(req string) Request {
 	method := strings.Split(reqRows[0], " ")[0]
 	headers := extractHeaders(method, reqRows)
 	var body string
+	if method != "GET" {
+		body = reqRows[len(reqRows)-1]
+	}
 	return Request{Path: path, Method: method, Headers: headers, Body: body}
 
 }
@@ -81,11 +84,30 @@ func HandleRequest(req string) string {
 		} else {
 			responseContent = []string{response.Header, CRLF, CRLF}
 		}
+	} else if request.Method == "POST" && strings.Split(request.Path, "/")[1] == "files" {
+		response := handlePostFiles(request)
+		contentLength := fmt.Sprintf("Content-Length: %d\r\n\r\n", len(response.Body))
+		if response.StatusCode == 200 {
+			responseContent = []string{response.Header, CRLF, response.ContentType, CRLF, contentLength, response.Body, CRLF}
+		} else {
+			responseContent = []string{response.Header, CRLF, CRLF}
+		}
+
 	} else {
 		responseContent = notFound404()
 	}
 	return strings.Join(responseContent, "")
 
+}
+func handlePostFiles(request Request) Response {
+	uriParts := strings.Split(request.Path, "/")
+	header := "HTTP/1.1 201 OK"
+	contentType := "Content-Type: text/plain"
+	writeFile(request.Body, directory+uriParts[2])
+	return Response{
+		Header:      header,
+		ContentType: contentType,
+	}
 }
 
 func notFound404() []string {
